@@ -1,0 +1,49 @@
+jmp start
+
+; Kod için gerekli veriler
+order: db 04h, 01h, 06h, 02h, 05h, 03h
+variables: db 15h, 21h, 20h, 21h, 10h, 72h
+
+; Kod
+start:  LXI D, order          ; DE register çiftine order dizisinin başlangıç adresini yükledim.
+        LXI H, variables      ; HL register çiftine variables dizisinin başlangıç adresini yükledim.
+        MVI C, 6              ; C register'ına döngü sayısı olan 6'yı kaydettim.(Döngü esnasına bu değer azalacak ve 0 olduğunda döngüden çıkacak.)
+
+outer:  CALL inner            ; inner döngüsünü çağırdım.
+        INX D                 ; order dizisindeki bir sonraki değeri elde etmek için DE'yi 1 artırdım.
+        INX H                 ; variables dizisindeki bir sonraki değeri elde etmek için HL'yi 1 artırdım.
+        DCR C                 ; Döngü sayacını 1 azalttım. 
+        JNZ outer             ; Döngünün bitip bitmediğinin kontrolünü yaptım.
+
+        JMP sort              ; Kodu toplama işleminin yapıldığı alana atlattım.
+
+inner:  MOV A, E              ; A register'ına order dizisindeki değeri kaydettim.
+        MOV L, A              ; L register'ına order dizisindeki değeri koydum.
+        MOV A, M              ; A register'ına variables dizisindeki değeri kaydettim.
+        PUSH D                ; DE register çiftini stack'e kaydettim (order dizisinin adresini korumak için).
+        LXI D, 1000h          ; DE'yi 1000h başlangıç adresi yaparak hedef belleği işaret ettim.
+        MOV M, A              ; HL register'ındaki adrese A'daki değeri kaydettim.
+        POP D                 ; DE register'ını (order dizisinin adresini) geri yükledim.
+        RET
+
+; Toplama işlemini yapabilmek için tüm register'ları sıfırladım.
+sort:   LXI H, 1000h          ; Bellekteki adreslere erişmek için HL'yi ayarladım.
+        MVI D, 0              ; D'yi sıfırladım (high byte için)
+        MVI E, 0              ; E'yi sıfırladım (low byte için)
+        MVI B, 3              ; B register'ına sayaç olarak 3 kaydettim (3 sayı toplanacak).
+
+subout: CALL subin            ; Toplama alt döngüsünü çağırdım.
+        DCR B                 ; Sayaç değerini 1 azalttım.
+        JNZ subout            ; Sayaç bitmediyse devam et.
+
+        MOV A, E              ; Toplamın düşük byte'ını A register'ına kaydettim.
+        STA 1006h             ; Düşük byte'ı 1006h adresine kaydettim.
+        MOV A, D              ; Toplamın yüksek byte'ını A register'ına kaydettim.
+        STA 1007h             ; Yüksek byte'ı 1007h adresine kaydettim.
+        HLT                   ; Programı sonlandır.
+
+subin:  MOV A, M              ; A register'ında adresteki değeri aldım.
+        ADD E                 ; E (önceki düşük byte) ile topladım.
+        MOV E, A              ; Sonucu E'ye kaydettim.
+        INX H                 ; HL'yi bir sonraki adrese ilerlettim.
+        RET

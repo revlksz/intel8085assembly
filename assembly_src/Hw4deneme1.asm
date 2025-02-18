@@ -1,0 +1,45 @@
+; @author - Resul Evleksiz - 152120211072
+
+; @brief - 8 bite sığan en yüksek üstel ifade bulma ve karekök alma
+
+	in 00h		; işlem kodunu (üstel/karekök) accumulatore yükle
+	mov b, a	; accumulatordeki işlem kodunu b registera taşı
+
+	in 01h		; işlem yapılacak sayıyı accumulatore yükle
+	mov d, a	; accumulatore gelen sayıyı d registera taşı
+
+	mvi a, 00h
+	cmp b 
+	jz power_process
+
+	mvi a, 00h 
+	cmp b
+	jz square_process
+
+
+power_process: 	nop	
+		mvi e, 00h
+		mvi a, 10h
+		cmp d
+		jp output_one	; sign flagi 1 ise jump et (sayı 16dan büyükse direkt kendisi en büyük üstel ifadedir)
+		
+		
+
+power_loop:	mov a, e	; accumulatorde toplama işlemi için e deki son değeri al
+		add d		; d deki sayı ile accumulatordekini topla
+		mov e, a
+		inx c
+		mov a, d
+		cmp c
+		jnz power_loop
+
+
+output_one: 	mvi a, 01h
+		out
+
+squareroot_process:
+
+
+square_results: db 1, 4, 9, 16, 25, 36, 49, 64, 81, 100, 121, 144, 169, 196, 225	; karekök alınacağı sırada yakınlık kontrolü için
+square_values: db 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15
+

@@ -1,0 +1,82 @@
+; Calculator program for GNUSim8085
+; Homework #3
+
+
+
+MVI A, 00H       ; Clear accumulator
+
+; Step 1: Read first operand from port 00h
+IN 00H           ; Get the first operand from port 00h
+MOV B, A         ; Store the first operand in register B
+
+; Step 2: Read second operand from port 01h
+IN 01H           ; Get the second operand from port 01h
+MOV C, A         ; Store the second operand in register C
+
+; Step 3: Read operation type from port 02h
+IN 02H           ; Get the operation type from port 02h
+MOV D, A         ; Store operation type in register D
+
+; Step 4: Perform the operation based on the operation type
+; Check for operation type using D register
+; 00H: Addition
+; 01H: Subtraction
+; 02H: Multiplication
+; 03H: Division
+
+; ADDITION (if operation type is 00H)
+MVI A, 00H       ; Load operation type for addition
+CMP D            ; Compare operation type with 00H
+JNZ CHECK_SUB    ; If not zero, jump to check subtraction
+
+ADD C            ; Perform addition: A = B + C
+MOV A, B         ; Store the result in accumulator
+
+JMP OUTPUT       ; Jump to output result
+
+CHECK_SUB:    nop   ; Subtraction (if operation type is 01H)
+MVI A, 01H       ; Load operation type for subtraction
+CMP D            ; Compare with 01H
+JNZ CHECK_MUL    ; If not zero, jump to check multiplication
+
+SUB C            ; Perform subtraction: A = B - C
+MOV A, B         ; Store the result in accumulator
+
+JMP OUTPUT       ; Jump to output result
+
+CHECK_MUL:   nop    ; Multiplication (if operation type is 02H)
+MVI A, 02H       ; Load operation type for multiplication
+CMP D            ; Compare with 02H
+JNZ CHECK_DIV    ; If not zero, jump to check division
+
+MOV A, B         ; Perform multiplication (loop-based)
+MUL_LOOP: nop
+DCR C            ; Decrement counter C
+JZ MUL_DONE      ; If C is zero, multiplication is done
+ADD B            ; Accumulate B to A
+JMP MUL_LOOP     ; Repeat until C reaches zero
+
+MUL_DONE: nop
+JMP OUTPUT       ; Jump to output result
+
+CHECK_DIV:  nop     ; Division (if operation type is 03H)
+MVI A, 03H       ; Load operation type for division
+CMP D            ; Compare with 03H
+JNZ OUTPUT       ; If not division, just output
+
+MOV A, B         ; Prepare division
+DIV_LOOP: nop
+CMP C            ; Compare B with C
+JC DIV_DONE      ; If B < C, division is done
+SUB C            ; Subtract C from B
+INR A            ; Increment quotient
+
+JMP DIV_LOOP     ; Repeat until B < C
+
+DIV_DONE: nop
+JMP OUTPUT       ; Jump to output result
+
+OUTPUT:    nop      ; Output the result
+OUT 03H          ; Send the result to port 03h
+
+HLT              ; End the program
